@@ -23,6 +23,11 @@ Add RPicker.swift inside your project.
     RPicker.selectDate(title: "Select Time", datePickerMode: .time, didSelectDate: { (selectedDate) in
                 // TODO: Your implementation for date
             })
+    
+    // Simple Date and Time Picker
+    RPicker.selectDate(title: "Select Date & Time", datePickerMode: .dateAndTime, minDate: Date(), maxDate: Date().dateByAddingYears(5), didSelectDate: { (selectedDate) in
+                // TODO: Your implementation for date
+            })
             
     // Simple Option Picker
     let dummyList = ["Apple", "Orange", "Banana", "Mango"]
