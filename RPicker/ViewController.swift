@@ -8,7 +8,7 @@
 
 import UIKit
 
-let dummyList = ["Apple", "Orange", "Banana", "Mango"]
+let dummyList = ["Apple", "Orange", "Banana", "Mango", "Bilberry", "Blackberry"]
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     @IBOutlet weak var outputLabel: UILabel!
