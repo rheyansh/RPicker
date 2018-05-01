@@ -431,22 +431,4 @@ extension UIView {
         let heightConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: nil, attribute: NSLayoutAttribute.height, multiplier: 1, constant: 48)
         self.addConstraints([horizontalConstraint, verticalConstraint, widthConstraint, heightConstraint])
     }
-    
-    func addToolBarButtonConstraints(_ relativeToView: UIView,_ align: RAlignment = .left) {
-        
-        relativeToView.translatesAutoresizingMaskIntoConstraints = false
-        var horizontalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.centerX, multiplier: 1, constant: 0)
-        if align == .right {
-            horizontalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.right, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.right, multiplier: 1, constant: 0)
-        }
-        
-        let verticalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.centerY, multiplier: 1, constant: 0)
-        let widthConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.width, multiplier: 1, constant: 60)
-        let heightConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.height, multiplier: 1, constant: 0)
-        self.addConstraints([horizontalConstraint, verticalConstraint, widthConstraint, heightConstraint])
-    }
-}
-
-enum RAlignment {
-    case left, right
 }
