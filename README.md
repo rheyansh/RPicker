@@ -2,7 +2,8 @@
 Elegant and Easy-to-Use iOS Swift Date and Options Picker
 
 # How to use
-Add RPicker.swift inside your project.
+Add RPicker.swift into your project.
+You are ready to go!
 
     // Simple Date Picker
     RPicker.selectDate { (selectedDate) in
@@ -39,7 +40,8 @@ Add RPicker.swift inside your project.
     RPicker.selectOption(title: "Select", hideCancel: true, dataArray: dummyList, selectedIndex: 2) { (selctedText, atIndex) in
                 // TODO: Your implementation for selection
             }
-   
+# Author   
+Raj Sharma, link.rajsharma@gmail.com
 
 # License
 RPicker is available under the MIT license. See the LICENSE file for more info.
