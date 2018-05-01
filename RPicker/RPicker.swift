@@ -10,6 +10,7 @@ import UIKit
 
 let pickerAnimationDuration: TimeInterval = 0.3
 let viewTransperantTag: Int = 9099
+let pickerHeight: CGFloat = 216
 
 class RPicker: NSObject {
     
@@ -26,7 +27,7 @@ class RPicker: NSObject {
         
         if let currentController = UIWindow.currentController {
             
-            if let bgView = currentController.view.viewWithTag(viewTransperantTag) {
+            if let _ = currentController.view.viewWithTag(viewTransperantTag) {
                 return
             }
             
@@ -47,36 +48,32 @@ class RPicker: NSObject {
             //Screen Size
             let screenWidth = currentController.view.bounds.size.width
             let screenHeight = currentController.view.bounds.size.height
-            let pickerHeight: CGFloat = 216
             
             // Add background view
             
             let closeFrame = CGRect(x: 0, y: screenHeight + 50, width: screenWidth, height: screenHeight)
             
-            let viewTransperant = UIView(frame: closeFrame)
-            viewTransperant.backgroundColor = UIColor.clear
+            let viewTransperant = UIView()
+            let view = currentController.view
+
             //viewTransperant.alpha = 0.0
-            currentController.view.addSubview(viewTransperant)
+            view?.addSubview(viewTransperant)
             viewTransperant.tag = viewTransperantTag
+            view?.addBGViewConstraints(viewTransperant)
             
             // Add date picker view
             
-            let pickerY = screenHeight - pickerHeight
-            
-            let pickerFrame = CGRect(x: 0, y: pickerY, width: screenWidth, height: pickerHeight)
-            datePicker.frame = pickerFrame
             viewTransperant.addSubview(datePicker)
+            viewTransperant.addPickerViewConstraints(datePicker)
             
             // Add tool bar with done and cancel buttons
-            var toolBarFrame = CGRect(x: 0, y: pickerY, width: screenWidth, height: 40)
-            toolBarFrame.origin.y = pickerY - toolBarFrame.size.height
             
-            let toolBar = RToolBar(frame: toolBarFrame)
+            let toolBar = RToolBar()
+            viewTransperant.addSubview(toolBar)
+            viewTransperant.addToolBarConstraints(toolBar, -pickerHeight)
             toolBar.addToolBar(hideCancelButton: hideCancel)
             toolBar.title = title
 
-            viewTransperant.addSubview(toolBar)
-            
             // show picker
             var openPickerFrame = viewTransperant.frame
             openPickerFrame.origin.y = 0
@@ -158,31 +155,27 @@ class RPicker: NSObject {
             
             let closeFrame = CGRect(x: 0, y: screenHeight + 50, width: screenWidth, height: screenHeight)
             
-            let viewTransperant = UIView(frame: closeFrame)
-            viewTransperant.backgroundColor = UIColor.clear
+            let viewTransperant = UIView()
+            
             //viewTransperant.alpha = 0.0
             currentController.view.addSubview(viewTransperant)
+            let view = currentController.view
             viewTransperant.tag = viewTransperantTag
+            view?.addBGViewConstraints(viewTransperant)
             
             // Add date picker view
             
-            let pickerY = screenHeight - pickerHeight
-            
-            let pickerFrame = CGRect(x: 0, y: pickerY, width: screenWidth, height: pickerHeight)
-            optionPicker.frame = pickerFrame
             viewTransperant.addSubview(optionPicker)
-            
-            // Add tool bar with done and cancel buttons
-            var toolBarFrame = CGRect(x: 0, y: pickerY, width: screenWidth, height: 40)
-            toolBarFrame.origin.y = pickerY - toolBarFrame.size.height
-            
-            let toolBar = RToolBar(frame: toolBarFrame)
-            toolBar.addToolBar(hideCancelButton: hideCancel)
+            viewTransperant.addPickerViewConstraints(optionPicker)
 
+            // Add tool bar with done and cancel buttons
+            
+            let toolBar = RToolBar()
+            viewTransperant.addSubview(toolBar)
+            viewTransperant.addToolBarConstraints(toolBar, -pickerHeight)
+            toolBar.addToolBar(hideCancelButton: hideCancel)
             toolBar.title = title
 
-            viewTransperant.addSubview(toolBar)
-            
             // show picker
             var openPickerFrame = viewTransperant.frame
             openPickerFrame.origin.y = 0
@@ -266,23 +259,14 @@ class RToolBar: UIView {
         }
     }
     
-    override init(frame: CGRect) {
-        
-        super.init(frame: frame)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
     func addToolBar(hideCancelButton: Bool = false) {
         self.hideCancelButton = hideCancelButton
-        self.addSubview(toolbar)
+        let toolbarL = toolbar
+        self.addSubview(toolbarL)
+        self.addToolBarConstraints(toolbarL)
     }
     
     open var toolbar: UIToolbar {
-        
-        let frame = CGRect(x: 0, y: 0, width: self.frame.size.width, height: 48)
         
         let toolBarL = ToolBar(frame: frame, target: self)
 
@@ -299,7 +283,6 @@ class RToolBar: UIView {
         toolBarL.appendButton(buttonItem: toolBarTitleItem)
         toolBarL.appendButton(buttonItem: toolBarL.flexibleSpace)
         toolBarL.appendButton(buttonItem: toolBarL.buttonItem(systemItem: .done, selector: #selector(self.doneAction)))
-
 
         return toolBarL
     }
@@ -319,16 +302,6 @@ class RToolBar: UIView {
 class ToolBar: UIToolbar {
     
     let target: Any?
-    
-    init(bottomBarWithHeight: CGFloat, target: Any?) {
-        self.target = target
-        
-        var bounds =  UIScreen.main.bounds
-        bounds.origin.y = bounds.height - bottomBarWithHeight
-        bounds.size.height = bottomBarWithHeight
-        
-        super.init(frame: bounds)
-    }
     
     init(frame: CGRect, target: Any?) {
         self.target = target
@@ -373,7 +346,7 @@ class ToolBarTitleItem: UIBarButtonItem {
     init(text: String, font: UIFont, color: UIColor) {
         
         var frame = UIScreen.main.bounds
-        frame.size.width = UIScreen.main.bounds.width - 130
+        frame.size.width = UIScreen.main.bounds.width - 140
         
         label =  UILabel(frame: frame)
         label.text = text
@@ -427,4 +400,53 @@ extension UIWindow {
     }
 }
 
+extension UIView {
+    
+    func addBGViewConstraints(_ relativeToView: UIView) {
+        
+        relativeToView.translatesAutoresizingMaskIntoConstraints = false
+        let horizontalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.centerX, multiplier: 1, constant: 0)
+        let verticalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.centerY, multiplier: 1, constant: 0)
+        let widthConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.width, multiplier: 1, constant: 0)
+        let heightConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.height, multiplier: 1, constant: 0)
+        self.addConstraints([horizontalConstraint, verticalConstraint, widthConstraint, heightConstraint])
+    }
+    
+    func addPickerViewConstraints(_ relativeToView: UIView) {
+        
+        relativeToView.translatesAutoresizingMaskIntoConstraints = false
+        let horizontalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.centerX, multiplier: 1, constant: 0)
+        let verticalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.bottomMargin, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.bottomMargin, multiplier: 1, constant: 0)
+        let widthConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.width, multiplier: 1, constant: 0)
+        let heightConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: nil, attribute: NSLayoutAttribute.height, multiplier: 1, constant: pickerHeight)
+        self.addConstraints([horizontalConstraint, verticalConstraint, widthConstraint, heightConstraint])
+    }
+    
+    func addToolBarConstraints(_ relativeToView: UIView,_ bottomConst: CGFloat = 0) {
+        
+        relativeToView.translatesAutoresizingMaskIntoConstraints = false
+        let horizontalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.centerX, multiplier: 1, constant: 0)
+        let verticalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.bottomMargin, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.bottomMargin, multiplier: 1, constant: bottomConst)
+        let widthConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.width, multiplier: 1, constant: 0)
+        let heightConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: nil, attribute: NSLayoutAttribute.height, multiplier: 1, constant: 48)
+        self.addConstraints([horizontalConstraint, verticalConstraint, widthConstraint, heightConstraint])
+    }
+    
+    func addToolBarButtonConstraints(_ relativeToView: UIView,_ align: RAlignment = .left) {
+        
+        relativeToView.translatesAutoresizingMaskIntoConstraints = false
+        var horizontalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.centerX, multiplier: 1, constant: 0)
+        if align == .right {
+            horizontalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.right, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.right, multiplier: 1, constant: 0)
+        }
+        
+        let verticalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.centerY, multiplier: 1, constant: 0)
+        let widthConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.width, multiplier: 1, constant: 60)
+        let heightConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: self, attribute: NSLayoutAttribute.height, multiplier: 1, constant: 0)
+        self.addConstraints([horizontalConstraint, verticalConstraint, widthConstraint, heightConstraint])
+    }
+}
 
+enum RAlignment {
+    case left, right
+}
