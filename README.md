@@ -46,7 +46,13 @@ You are ready to go!
                 // TODO: Your implementation for selection
             }
 # Author   
-Raj Sharma, link.rajsharma@gmail.com
+
+* **Raj Sharma** -  [razzzsharma](https://github.com/razzzsharma)
+
+## Communication
+
+* If you **found a bug**, open an issue.
+* If you **want to contribute**, submit a pull request.
 
 # License
 RPicker is available under the MIT license. See the LICENSE file for more info.
