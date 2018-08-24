@@ -47,7 +47,7 @@ You are ready to go!
             }
 # Author   
 
-* [Raj Sharma](https://github.com/razzzsharma)
+* [Raj Sharma](https://github.com/rheyansh)
 * [Web](http://rajsharma.online/)
 
 ## Communication
