@@ -1,10 +1,10 @@
 # RPicker
 Elegant and Easy-to-Use iOS Swift Date and Options Picker
 
-![Alt text](https://github.com/razzzsharma/RPicker/blob/master/Screenshots/1.png)
-![Alt text](https://github.com/razzzsharma/RPicker/blob/master/Screenshots/2.png)
-![Alt text](https://github.com/razzzsharma/RPicker/blob/master/Screenshots/3.png)
-![Alt text](https://github.com/razzzsharma/RPicker/blob/master/Screenshots/4.png)
+![Alt text](https://github.com/rheyansh/RPicker/blob/master/Screenshots/1.png)
+![Alt text](https://github.com/rheyansh/RPicker/blob/master/Screenshots/2.png)
+![Alt text](https://github.com/rheyansh/RPicker/blob/master/Screenshots/3.png)
+![Alt text](https://github.com/rheyansh/RPicker/blob/master/Screenshots/4.png)
 
 # How to use
 Add RPicker.swift into your project.
