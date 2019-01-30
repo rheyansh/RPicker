@@ -1,5 +1,6 @@
 # RPicker
 Elegant and Easy-to-Use iOS Swift Date and Options Picker
+Clone Swift_4.2 branch for swift version 4.2
 
 ![Alt text](https://github.com/rheyansh/RPicker/blob/master/Screenshots/1.png)
 ![Alt text](https://github.com/rheyansh/RPicker/blob/master/Screenshots/2.png)
