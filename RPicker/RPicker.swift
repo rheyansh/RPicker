@@ -31,6 +31,8 @@ class RPicker: NSObject {
                 return
             }
             
+            //hide keyboard
+UIApplication.shared.sendAction(#selector(UIApplication.resignFirstResponder), to: nil, from: nil, for: nil)
             
             let datePicker = UIDatePicker()
             datePicker.datePickerMode = datePickerMode
@@ -133,6 +135,9 @@ class RPicker: NSObject {
             if let bgView = currentController.view.viewWithTag(viewTransperantTag) {
                 return
             }
+            
+            //hide keyboard
+            UIApplication.shared.sendAction(#selector(UIApplication.resignFirstResponder), to: nil, from: nil, for: nil)
             
             let optionPicker = UIPickerView()
             optionPicker.backgroundColor = UIColor.white
