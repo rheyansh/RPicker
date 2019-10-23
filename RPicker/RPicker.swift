@@ -371,11 +371,21 @@ class ToolBarTitleItem: UIBarButtonItem {
     }
 }
 
+extension UIApplication {
+    static var keyWindow: UIWindow? {
+        return UIApplication.shared.connectedScenes
+        .filter({$0.activationState == .foregroundActive})
+        .map({$0 as? UIWindowScene})
+        .compactMap({$0})
+        .first?.windows
+        .filter({$0.isKeyWindow}).first
+    }
+}
+
 extension UIWindow {
-    
-    static var currentController: UIViewController? {
-        let appDelegate = UIApplication.shared.delegate as? AppDelegate
-        return appDelegate?.window?.currentController
+        
+    static var currentController: UIViewController? {                
+        return UIApplication.keyWindow?.currentController
     }
     
     var currentController: UIViewController? {
@@ -385,7 +395,7 @@ extension UIWindow {
         return nil
     }
     
-    func topViewController(controller: UIViewController? = UIApplication.shared.keyWindow?.rootViewController) -> UIViewController? {
+    func topViewController(controller: UIViewController? = UIApplication.keyWindow?.rootViewController) -> UIViewController? {
         if let nc = controller as? UINavigationController {
             if nc.viewControllers.count > 0 {
                 return topViewController(controller: nc.viewControllers.last!)
@@ -403,6 +413,8 @@ extension UIWindow {
         }
         return controller
     }
+    
+    
 }
 
 extension UIView {
