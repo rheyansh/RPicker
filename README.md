@@ -12,40 +12,61 @@ Add RPicker.swift into your project.
 You are ready to go!
 
     // Simple Date Picker
-    RPicker.selectDate { (selectedDate) in
-                // TODO: Your implementation for date
-            }            
-    
-    // Simple Date Picker with title
-    RPicker.selectDate(title: "Select Date", didSelectDate: { (selectedDate) in
-                // TODO: Your implementation for date
-            })
+        RPicker.selectDate {[weak self] (selectedDate) in
+            // TODO: Your implementation for date
+            self?.outputLabel.text = selectedDate.dateString("MMM-dd-YYYY")
+        }
+        
+        // Simple Date Picker with title
+        RPicker.selectDate(title: "Select Date", didSelectDate: {[weak self] (selectedDate) in
+            // TODO: Your implementation for date
+            self?.outputLabel.text = selectedDate.dateString("MMM-dd-YYYY")
+        })
+        
+        // Simple Time Picker
+        RPicker.selectDate(title: "Select Time", datePickerMode: .time, didSelectDate: { [weak self](selectedDate) in
+            // TODO: Your implementation for date
+            self?.outputLabel.text = selectedDate.dateString("hh:mm a")
+        })
+        
+        // Simple Date and Time Picker
+        RPicker.selectDate(title: "Select Date & Time", datePickerMode: .dateAndTime, minDate: Date(), maxDate: Date().dateByAddingYears(5), didSelectDate: {[weak self] (selectedDate) in
+            // TODO: Your implementation for date
+            self?.outputLabel.text = selectedDate.dateString()
+        })
+        
+        //Show date picker with min and max date
+        RPicker.selectDate(title: "Select Date", hideCancel: true, minDate: Date(), maxDate: Date().dateByAddingYears(5), didSelectDate: {[weak self] (selectedDate) in
+            // TODO: Your implementation for date
+            self?.outputLabel.text = selectedDate.dateString("MMM-dd-YYYY")
+        })
+        
+        let dummyList = ["Apple", "Orange", "Banana", "Mango", "Bilberry", "Blackberry"]
+
+        // Simple Option Picker
+        RPicker.selectOption(dataArray: dummyList) {[weak self] (selctedText, atIndex) in
+            // TODO: Your implementation for selection
+            self?.outputLabel.text = selctedText + " selcted at \(atIndex)"
+        }
+        
+        // Simple Option Picker with selected index
+        let dummyList = ["Apple", "Orange", "Banana", "Mango"]
+        RPicker.selectOption(title: "Select", hideCancel: true, dataArray: dummyList, selectedIndex: 2) {[weak self] (selctedText, atIndex) in
+            // TODO: Your implementation for selection
+            self?.outputLabel.text = selctedText + " selcted at \(atIndex)"
+        }
+        
+        //Date picker with pre selected date
+        let selectedDate = Date().dateByAddingYears(-6)
+        let maxDate = Date()
+        let minDate = Date().dateByAddingYears(-12)
+        
+        RPicker.selectDate(title: "Select", selectedDate: selectedDate, minDate: minDate, maxDate: maxDate) { [weak self] (selectedDate) in
+            // TODO: Your implementation for date
+            self?.outputLabel.text = selectedDate.dateString("MMM-dd-YYYY")
             
-    // Simple Date Picker with min and max validation
-    RPicker.selectDate(title: "Select Date", hideCancel: true, minDate: Date(), maxDate: Date().dateByAddingYears(5), didSelectDate: { (selectedDate) in
-                // TODO: Your implementation for date
-            })      
-    
-    // Simple Time Picker
-    RPicker.selectDate(title: "Select Time", datePickerMode: .time, didSelectDate: { (selectedDate) in
-                // TODO: Your implementation for date
-            })
-    
-    // Simple Date and Time Picker
-    RPicker.selectDate(title: "Select Date & Time", datePickerMode: .dateAndTime, minDate: Date(), maxDate: Date().dateByAddingYears(5), didSelectDate: { (selectedDate) in
-                // TODO: Your implementation for date
-            })
-            
-    // Simple Option Picker
-    let dummyList = ["Apple", "Orange", "Banana", "Mango"]
-    RPicker.selectOption(dataArray: dummyList) { (selctedText, atIndex) in
-                // TODO: Your implementation for selection
-            }
-            
-    // Simple Option Picker with selected index
-    RPicker.selectOption(title: "Select", hideCancel: true, dataArray: dummyList, selectedIndex: 2) { (selctedText, atIndex) in
-                // TODO: Your implementation for selection
-            }
+        }
+        
 # Author   
 
 * [Raj Sharma](https://github.com/rheyansh)

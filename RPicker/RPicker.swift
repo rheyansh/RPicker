@@ -37,7 +37,7 @@ UIApplication.shared.sendAction(#selector(UIApplication.resignFirstResponder), t
             let datePicker = UIDatePicker()
             datePicker.datePickerMode = datePickerMode
             datePicker.backgroundColor = UIColor.white
-            
+
             datePicker.minimumDate = minDate
             datePicker.maximumDate = maxDate
             
@@ -76,6 +76,13 @@ UIApplication.shared.sendAction(#selector(UIApplication.resignFirstResponder), t
             toolBar.addToolBar(hideCancelButton: hideCancel)
             toolBar.title = title
 
+            var views: [UIView] = [datePicker, toolBar]
+            if let selectLabel = toolBar.toolBarTitleItem?.label {
+                views.append(selectLabel)
+            }
+            
+            checkForDarkOrLightMode(currentController, views)
+            
             // show picker
             var openPickerFrame = viewTransperant.frame
             openPickerFrame.origin.y = 0
@@ -184,7 +191,13 @@ UIApplication.shared.sendAction(#selector(UIApplication.resignFirstResponder), t
             // show picker
             var openPickerFrame = viewTransperant.frame
             openPickerFrame.origin.y = 0
-            
+
+            var views: [UIView] = [optionPicker, toolBar]
+            if let selectLabel = toolBar.toolBarTitleItem?.label {
+                views.append(selectLabel)
+            }
+            checkForDarkOrLightMode(currentController, views)
+
             UIView.animate(withDuration: pickerAnimationDuration, animations: {
                 viewTransperant.frame = openPickerFrame
                 
@@ -224,6 +237,27 @@ UIApplication.shared.sendAction(#selector(UIApplication.resignFirstResponder), t
                 })
             }
         }
+    }
+    
+    private class func checkForDarkOrLightMode(_ currentController: UIViewController, _ views: [UIView]) {
+        
+        if #available(iOS 13.0, *) {
+                        
+                        if currentController.traitCollection.userInterfaceStyle == .dark {
+            // Always adopt a light interface style.
+                            
+                            for view in views {
+                                
+                                if view is UIDatePicker || view is UIPickerView {
+                                    view.backgroundColor = UIColor.black
+                                } else if view is UILabel {
+                                    (view as! UILabel).textColor = UIColor.white
+                                }
+                                    view.overrideUserInterfaceStyle = .dark
+
+                            }
+                        }
+                        }
     }
 }
 
@@ -371,11 +405,21 @@ class ToolBarTitleItem: UIBarButtonItem {
     }
 }
 
+extension UIApplication {
+    static var keyWindow: UIWindow? {
+        return UIApplication.shared.connectedScenes
+        .filter({$0.activationState == .foregroundActive})
+        .map({$0 as? UIWindowScene})
+        .compactMap({$0})
+        .first?.windows
+        .filter({$0.isKeyWindow}).first
+    }
+}
+
 extension UIWindow {
-    
+        
     static var currentController: UIViewController? {
-        let appDelegate = UIApplication.shared.delegate as? AppDelegate
-        return appDelegate?.window?.currentController
+        return UIApplication.keyWindow?.currentController
     }
     
     var currentController: UIViewController? {
@@ -385,7 +429,7 @@ extension UIWindow {
         return nil
     }
     
-    func topViewController(controller: UIViewController? = UIApplication.shared.keyWindow?.rootViewController) -> UIViewController? {
+    func topViewController(controller: UIViewController? = UIApplication.keyWindow?.rootViewController) -> UIViewController? {
         if let nc = controller as? UINavigationController {
             if nc.viewControllers.count > 0 {
                 return topViewController(controller: nc.viewControllers.last!)
@@ -403,6 +447,8 @@ extension UIWindow {
         }
         return controller
     }
+    
+    
 }
 
 extension UIView {
@@ -437,3 +483,4 @@ extension UIView {
         self.addConstraints([horizontalConstraint, verticalConstraint, widthConstraint, heightConstraint])
     }
 }
+
