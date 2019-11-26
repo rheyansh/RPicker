@@ -19,7 +19,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
     }
-
+    
     //MARK:- UITableViewDelegate/UITableViewDataSource
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -39,34 +39,38 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         switch indexPath.row {
         case 0:
             
+            // Simple Date Picker
             RPicker.selectDate {[weak self] (selectedDate) in
                 // TODO: Your implementation for date
                 self?.outputLabel.text = selectedDate.dateString("MMM-dd-YYYY")
             }
-          
+            
         case 1:
             
+            // Simple Date Picker with title
             RPicker.selectDate(title: "Select Date", didSelectDate: {[weak self] (selectedDate) in
                 // TODO: Your implementation for date
                 self?.outputLabel.text = selectedDate.dateString("MMM-dd-YYYY")
             })
             
         case 2:
-
+            
+            // Simple Time Picker
             RPicker.selectDate(title: "Select Time", datePickerMode: .time, didSelectDate: { [weak self](selectedDate) in
                 // TODO: Your implementation for date
                 self?.outputLabel.text = selectedDate.dateString("hh:mm a")
             })
-           
+            
         case 3:
             
+            // Simple Date and Time Picker
             RPicker.selectDate(title: "Select Date & Time", datePickerMode: .dateAndTime, minDate: Date(), maxDate: Date().dateByAddingYears(5), didSelectDate: {[weak self] (selectedDate) in
                 // TODO: Your implementation for date
                 self?.outputLabel.text = selectedDate.dateString()
             })
             
         case 4:
-            
+            //Show date picker with min and max date
             RPicker.selectDate(title: "Select Date", hideCancel: true, minDate: Date(), maxDate: Date().dateByAddingYears(5), didSelectDate: {[weak self] (selectedDate) in
                 // TODO: Your implementation for date
                 self?.outputLabel.text = selectedDate.dateString("MMM-dd-YYYY")
@@ -74,6 +78,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             
         case 5:
             
+            // Simple Option Picker
             RPicker.selectOption(dataArray: dummyList) {[weak self] (selctedText, atIndex) in
                 // TODO: Your implementation for selection
                 self?.outputLabel.text = selctedText + " selcted at \(atIndex)"
@@ -81,29 +86,32 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             
         case 6:
             
+            // Simple Option Picker with selected index
+            let dummyList = ["Apple", "Orange", "Banana", "Mango"]
             RPicker.selectOption(title: "Select", hideCancel: true, dataArray: dummyList, selectedIndex: 2) {[weak self] (selctedText, atIndex) in
                 // TODO: Your implementation for selection
                 self?.outputLabel.text = selctedText + " selcted at \(atIndex)"
             }
             
-            case 7:
+        case 7:
             
-                let selectedDate = Date().dateByAddingYears(-6)
-                let maxDate = Date()
-                let minDate = Date().dateByAddingYears(-12)
-
-                RPicker.selectDate(title: "Select", selectedDate: selectedDate, minDate: minDate, maxDate: maxDate) { [weak self] (selectedDate) in
-                                    // TODO: Your implementation for date
-                    self?.outputLabel.text = selectedDate.dateString("MMM-dd-YYYY")
-
-                }
+            //Date picker with pre selected date
+            let selectedDate = Date().dateByAddingYears(-6)
+            let maxDate = Date()
+            let minDate = Date().dateByAddingYears(-12)
+            
+            RPicker.selectDate(title: "Select", selectedDate: selectedDate, minDate: minDate, maxDate: maxDate) { [weak self] (selectedDate) in
+                // TODO: Your implementation for date
+                self?.outputLabel.text = selectedDate.dateString("MMM-dd-YYYY")
+                
+            }
             
         default:
             break
         }
         
     }
-
+    
 }
 
 
@@ -125,5 +133,8 @@ extension Date {
         return Calendar.current.date(byAdding: dateComponents, to: self)!
     }
 }
+
+
+
 
 
