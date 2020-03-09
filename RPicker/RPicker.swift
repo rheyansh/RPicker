@@ -18,7 +18,8 @@ class RPicker: NSObject {
     private var dataArray: Array<String> = []
     
     class func selectDate(title: String = "",
-                          hideCancel: Bool = false,
+                          cancelText: String? = "Cancel",
+                          doneText: String = "Done",
                           datePickerMode: UIDatePicker.Mode = .date,
                           selectedDate: Date? = Date(),
                           minDate: Date? = nil,
@@ -73,7 +74,7 @@ UIApplication.shared.sendAction(#selector(UIApplication.resignFirstResponder), t
             let toolBar = RToolBar()
             viewTransperant.addSubview(toolBar)
             viewTransperant.addToolBarConstraints(toolBar, -pickerHeight)
-            toolBar.addToolBar(hideCancelButton: hideCancel)
+            toolBar.addToolBar(cancelText: cancelText, doneText: doneText)
             toolBar.title = title
 
             var views: [UIView] = [datePicker, toolBar]
@@ -123,7 +124,8 @@ UIApplication.shared.sendAction(#selector(UIApplication.resignFirstResponder), t
     }
     
     class func selectOption(title: String = "",
-                      hideCancel: Bool = false,
+                      cancelText: String? = "Cancel",
+                      doneText: String = "Done",
                       dataArray:Array<String>?,
                       selectedIndex: Int? = nil,
                       didSelectValue : ((_ value: String, _ atIndex: Int)->())?)  {
@@ -185,7 +187,7 @@ UIApplication.shared.sendAction(#selector(UIApplication.resignFirstResponder), t
             let toolBar = RToolBar()
             viewTransperant.addSubview(toolBar)
             viewTransperant.addToolBarConstraints(toolBar, -pickerHeight)
-            toolBar.addToolBar(hideCancelButton: hideCancel)
+            toolBar.addToolBar(cancelText: cancelText, doneText: doneText)
             toolBar.title = title
 
             // show picker
@@ -286,8 +288,9 @@ class RToolBar: UIView {
     
     var toolBarTitleItem: ToolBarTitleItem?
 
-    private var hideCancelButton: Bool = false
-    
+    private var cancelText: String?
+    private var doneText: String!
+
     var title = "" {
         didSet {
             guard let toolBarTitleItem = toolBarTitleItem else {
@@ -298,8 +301,9 @@ class RToolBar: UIView {
         }
     }
     
-    func addToolBar(hideCancelButton: Bool = false) {
-        self.hideCancelButton = hideCancelButton
+    func addToolBar(cancelText: String?, doneText: String) {
+        self.cancelText = cancelText
+        self.doneText = doneText
         let toolbarL = toolbar
         self.addSubview(toolbarL)
         self.addToolBarConstraints(toolbarL)
@@ -309,8 +313,8 @@ class RToolBar: UIView {
         
         let toolBarL = ToolBar(frame: frame, target: self)
 
-        if !hideCancelButton {
-            toolBarL.appendButton(buttonItem: toolBarL.buttonItem(systemItem: .cancel, selector: #selector(self.cancelAction)))
+        if let text = cancelText {
+            toolBarL.appendButton(buttonItem: toolBarL.buttonItem(text: text, selector: #selector(self.cancelAction)))
         }
         
         //toolBar.appendButton(buttonItem: toolBar.buttonItem(systemItem: .camera, selector: #selector(self.doneAction)))
@@ -321,21 +325,14 @@ class RToolBar: UIView {
         self.toolBarTitleItem = toolBarTitleItem as? ToolBarTitleItem
         toolBarL.appendButton(buttonItem: toolBarTitleItem)
         toolBarL.appendButton(buttonItem: toolBarL.flexibleSpace)
-        toolBarL.appendButton(buttonItem: toolBarL.buttonItem(systemItem: .done, selector: #selector(self.doneAction)))
+        toolBarL.appendButton(buttonItem: toolBarL.buttonItem(text: doneText, selector: #selector(self.doneAction)))
 
         return toolBarL
     }
     
-    @objc func doneAction() {
-        didSelectDone?()
-    }
+    @objc func doneAction() { didSelectDone?() }
     
-    @objc func cancelAction() {
-        
-        if !hideCancelButton {
-            didCancelled?()
-        }
-    }
+    @objc func cancelAction() { didCancelled?() }
 }
 
 class ToolBar: UIToolbar {
@@ -351,13 +348,17 @@ class ToolBar: UIToolbar {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func buttonItem(systemItem: UIBarButtonItem.SystemItem, selector: Selector?) -> UIBarButtonItem {
+    func buttonItem(text: String, selector: Selector?) -> UIBarButtonItem {
         
-        return UIBarButtonItem(barButtonSystemItem: systemItem, target: target, action: selector)
+        return UIBarButtonItem(
+            title: text,
+            style: .plain,
+            target: target,
+            action: selector)
     }
     
     var flexibleSpace: UIBarButtonItem {
-        return buttonItem(systemItem: UIBarButtonItem.SystemItem.flexibleSpace, selector:nil)
+        return UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: target, action: nil)
     }
     
     func titleItem (text: String, font: UIFont, color: UIColor) -> UIBarButtonItem {
