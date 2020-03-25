@@ -24,26 +24,26 @@ You are ready to go!
         })
         
         // Simple Time Picker
-        RPicker.selectDate(title: "Select Time", datePickerMode: .time, didSelectDate: { [weak self](selectedDate) in
+        RPicker.selectDate(title: "Select Time", cancelText: "Cancel", datePickerMode: .time, didSelectDate: { [weak self](selectedDate) in
             // TODO: Your implementation for date
             self?.outputLabel.text = selectedDate.dateString("hh:mm a")
         })
         
         // Simple Date and Time Picker
-        RPicker.selectDate(title: "Select Date & Time", datePickerMode: .dateAndTime, minDate: Date(), maxDate: Date().dateByAddingYears(5), didSelectDate: {[weak self] (selectedDate) in
+        RPicker.selectDate(title: "Select Date & Time", cancelText: "Cancel", datePickerMode: .dateAndTime, minDate: Date(), maxDate: Date().dateByAddingYears(5), didSelectDate: {[weak self] (selectedDate) in
             // TODO: Your implementation for date
             self?.outputLabel.text = selectedDate.dateString()
         })
         
         //Show date picker with min and max date
-        RPicker.selectDate(title: "Select Date", hideCancel: true, minDate: Date(), maxDate: Date().dateByAddingYears(5), didSelectDate: {[weak self] (selectedDate) in
+        RPicker.selectDate(title: "Select Date", minDate: Date(), maxDate: Date().dateByAddingYears(5), didSelectDate: {[weak self] (selectedDate) in
             // TODO: Your implementation for date
             self?.outputLabel.text = selectedDate.dateString("MMM-dd-YYYY")
         })
         
+        // Simple Option Picker
         let dummyList = ["Apple", "Orange", "Banana", "Mango", "Bilberry", "Blackberry"]
 
-        // Simple Option Picker
         RPicker.selectOption(dataArray: dummyList) {[weak self] (selctedText, atIndex) in
             // TODO: Your implementation for selection
             self?.outputLabel.text = selctedText + " selcted at \(atIndex)"
@@ -51,7 +51,7 @@ You are ready to go!
         
         // Simple Option Picker with selected index
         let dummyList = ["Apple", "Orange", "Banana", "Mango"]
-        RPicker.selectOption(title: "Select", hideCancel: true, dataArray: dummyList, selectedIndex: 2) {[weak self] (selctedText, atIndex) in
+        RPicker.selectOption(title: "Select", cancelText: "Cancel", dataArray: dummyList, selectedIndex: 2) {[weak self] (selctedText, atIndex) in
             // TODO: Your implementation for selection
             self?.outputLabel.text = selctedText + " selcted at \(atIndex)"
         }
@@ -70,7 +70,6 @@ You are ready to go!
 # Author   
 
 * [Raj Sharma](https://github.com/rheyansh)
-* [Web](http://rajsharma.online/)
 
 ## Communication
 

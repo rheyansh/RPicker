@@ -13,7 +13,7 @@ let dummyList = ["Apple", "Orange", "Banana", "Mango", "Bilberry", "Blackberry"]
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     @IBOutlet weak var outputLabel: UILabel!
     
-    let items = ["Show date picker", "Show date picker with tile", "Show time picker", "Show date and time picker", "Show date picker with min and max date", "Show option picker", "Show option picker with selected index", "Show date picker with pre selected date"]
+    let items = ["Show date picker", "Show date picker with tile", "Show time picker", "Show date and time picker", "Show date picker with min and max date", "Show option picker", "Show option picker with selected index", "Show date picker with pre selected date", "Show date picker with cancel button"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -56,7 +56,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         case 2:
             
             // Simple Time Picker
-            RPicker.selectDate(title: "Select Time", datePickerMode: .time, didSelectDate: { [weak self](selectedDate) in
+            RPicker.selectDate(title: "Select Time", cancelText: "Cancel", datePickerMode: .time, didSelectDate: { [weak self](selectedDate) in
                 // TODO: Your implementation for date
                 self?.outputLabel.text = selectedDate.dateString("hh:mm a")
             })
@@ -64,14 +64,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         case 3:
             
             // Simple Date and Time Picker
-            RPicker.selectDate(title: "Select Date & Time", datePickerMode: .dateAndTime, minDate: Date(), maxDate: Date().dateByAddingYears(5), didSelectDate: {[weak self] (selectedDate) in
+            RPicker.selectDate(title: "Select Date & Time", cancelText: "Cancel", datePickerMode: .dateAndTime, minDate: Date(), maxDate: Date().dateByAddingYears(5), didSelectDate: {[weak self] (selectedDate) in
                 // TODO: Your implementation for date
                 self?.outputLabel.text = selectedDate.dateString()
             })
             
         case 4:
             //Show date picker with min and max date
-            RPicker.selectDate(title: "Select Date", hideCancel: true, minDate: Date(), maxDate: Date().dateByAddingYears(5), didSelectDate: {[weak self] (selectedDate) in
+            RPicker.selectDate(title: "Select Date", minDate: Date(), maxDate: Date().dateByAddingYears(5), didSelectDate: {[weak self] (selectedDate) in
                 // TODO: Your implementation for date
                 self?.outputLabel.text = selectedDate.dateString("MMM-dd-YYYY")
             })
@@ -88,7 +88,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             
             // Simple Option Picker with selected index
             let dummyList = ["Apple", "Orange", "Banana", "Mango"]
-            RPicker.selectOption(title: "Select", hideCancel: true, dataArray: dummyList, selectedIndex: 2) {[weak self] (selctedText, atIndex) in
+            RPicker.selectOption(title: "Select", cancelText: "Cancel", dataArray: dummyList, selectedIndex: 2) {[weak self] (selctedText, atIndex) in
                 // TODO: Your implementation for selection
                 self?.outputLabel.text = selctedText + " selcted at \(atIndex)"
             }
@@ -106,12 +106,59 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 
             }
             
+        case 8:
+            //Show date picker with min and max date
+            RPicker.selectDate(title: "Select Date", cancelText: "Cancel", didSelectDate: {[weak self] (selectedDate) in
+                // TODO: Your implementation for date
+                self?.outputLabel.text = selectedDate.dateString("MMM-dd-YYYY")
+            })
+            
         default:
             break
         }
         
     }
     
+    func dateSelect()  {
+
+        //init date picker
+        let datePicker = UIDatePicker(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 260))
+        datePicker.datePickerMode = UIDatePicker.Mode.date
+
+        //add target
+        datePicker.addTarget(self, action: #selector(dateSelected(datePicker:)), for: UIControl.Event.valueChanged)
+
+        //add to actionsheetview
+        let alertController = UIAlertController(title: "", message:" " , preferredStyle: UIAlertController.Style.actionSheet)
+
+        alertController.view.addSubview(datePicker)//add subview
+
+        let cancelAction = UIAlertAction(title: "Done", style: .cancel) { (action) in
+            self.dateSelected(datePicker: datePicker)
+        }
+
+        //add button to action sheet
+        alertController.addAction(cancelAction)
+
+        let height:NSLayoutConstraint = NSLayoutConstraint(item: alertController.view, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: 300)
+        alertController.view.addConstraint(height);
+
+        self.present(alertController, animated: true, completion: nil)
+
+    }
+
+
+    //selected date func
+    @objc func dateSelected(datePicker:UIDatePicker) {
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = DateFormatter.Style.short
+
+        let currentDate = datePicker.date
+
+        print(currentDate)
+
+    }
 }
 
 

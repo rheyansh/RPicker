@@ -8,417 +8,392 @@
 
 import UIKit
 
-let pickerAnimationDuration: TimeInterval = 0.3
-let viewTransperantTag: Int = 9099
-let pickerHeight: CGFloat = 216
+enum RPickerType {
+    case date, option
+}
 
-class RPicker: NSObject {
+open class RPicker {
     
-    static private let sharedInstance = RPicker()
-    private var dataArray: Array<String> = []
+    private static let sharedInstance = RPicker()
+    private var isPresented = false
     
-    class func selectDate(title: String = "",
-                          cancelText: String? = "Cancel",
+    /**
+     Show UIDatePicker with various constraints.
+     
+     - Parameters:
+     - title: Title visible to user above UIDatePicker.
+     - cancelText: By default button is hidden. Set text to show cancel button.
+     - doneText: Set done button title customization. A default title "Done" is used.
+     - datePickerMode: default is Date.
+     - selectedDate: default is current date.
+     - minDate: default is nil.
+     - maxDate: default is nil.
+
+     - returns: closure with selected date.
+     */
+    
+    class func selectDate(title: String? = nil,
+                          cancelText: String? = nil,
                           doneText: String = "Done",
                           datePickerMode: UIDatePicker.Mode = .date,
-                          selectedDate: Date? = Date(),
+                          selectedDate: Date = Date(),
                           minDate: Date? = nil,
                           maxDate: Date? = nil,
-                          didSelectDate : ((_ date: Date)->())?)  {
+                          didSelectDate : ((_ date: Date)->())?) {
         
-        if let currentController = UIWindow.currentController {
-            
-            if let _ = currentController.view.viewWithTag(viewTransperantTag) {
-                return
-            }
-            
-            //hide keyboard
-UIApplication.shared.sendAction(#selector(UIApplication.resignFirstResponder), to: nil, from: nil, for: nil)
-            
-            let datePicker = UIDatePicker()
-            datePicker.datePickerMode = datePickerMode
-            datePicker.backgroundColor = UIColor.white
-
-            datePicker.minimumDate = minDate
-            datePicker.maximumDate = maxDate
-            
-            if let selectedDate = selectedDate {
-                datePicker.date = selectedDate
-            } else {
-                datePicker.date = Date()
-            }
-            
-            //Screen Size
-            let screenWidth = currentController.view.bounds.size.width
-            let screenHeight = currentController.view.bounds.size.height
-            
-            // Add background view
-            
-            let closeFrame = CGRect(x: 0, y: screenHeight + 50, width: screenWidth, height: screenHeight)
-            
-            let viewTransperant = UIView()
-            let view = currentController.view
-
-            //viewTransperant.alpha = 0.0
-            view?.addSubview(viewTransperant)
-            viewTransperant.tag = viewTransperantTag
-            view?.addBGViewConstraints(viewTransperant)
-            
-            // Add date picker view
-            
-            viewTransperant.addSubview(datePicker)
-            viewTransperant.addPickerViewConstraints(datePicker)
-            
-            // Add tool bar with done and cancel buttons
-            
-            let toolBar = RToolBar()
-            viewTransperant.addSubview(toolBar)
-            viewTransperant.addToolBarConstraints(toolBar, -pickerHeight)
-            toolBar.addToolBar(cancelText: cancelText, doneText: doneText)
-            toolBar.title = title
-
-            var views: [UIView] = [datePicker, toolBar]
-            if let selectLabel = toolBar.toolBarTitleItem?.label {
-                views.append(selectLabel)
-            }
-            
-            checkForDarkOrLightMode(currentController, views)
-            
-            // show picker
-            var openPickerFrame = viewTransperant.frame
-            openPickerFrame.origin.y = 0
-            
-            UIView.animate(withDuration: pickerAnimationDuration, animations: {
-                viewTransperant.frame = openPickerFrame
-                
-            }, completion: { (_) in
-                UIView.animate(withDuration: pickerAnimationDuration, animations: {
-                    viewTransperant.backgroundColor = UIColor(red: (0/255.0), green: (0/255.0), blue: (0/255.0), alpha: 0.6)
-                })
-            })
-            
-            toolBar.didSelectDone = {
-                didSelectDate!(datePicker.date)
-                remove()
-            }
-            
-            toolBar.didCancelled = {
-                
-                remove()
-            }
-            
-            func remove() {
-                
-                UIView.animate(withDuration: pickerAnimationDuration, animations: {
-                    viewTransperant.backgroundColor = UIColor.clear
-                    
-                }, completion: { (_) in
-                    UIView.animate(withDuration: pickerAnimationDuration, animations: {
-                        viewTransperant.frame = closeFrame
-                    }, completion: { (_) in
-                        viewTransperant.removeFromSuperview()
-                    })
-                })
-            }
+        guard let vc = controller(title: title, cancelText: cancelText, doneText: doneText, datePickerMode: datePickerMode, selectedDate: selectedDate, minDate: minDate, maxDate: maxDate, type: .date) else { return }
+        
+        vc.onDateSelected = { (selectedData) in
+            didSelectDate?(selectedData)
         }
     }
     
-    class func selectOption(title: String = "",
-                      cancelText: String? = "Cancel",
-                      doneText: String = "Done",
-                      dataArray:Array<String>?,
-                      selectedIndex: Int? = nil,
-                      didSelectValue : ((_ value: String, _ atIndex: Int)->())?)  {
-        
-        guard let dataArray = dataArray else {
-            print("Blank array")
-            return
-        }
-        
-        let picker = RPicker.sharedInstance
-        
-        picker.dataArray = dataArray
-        
-        if let currentController = UIWindow.currentController {
-            
-            if let bgView = currentController.view.viewWithTag(viewTransperantTag) {
-                return
-            }
-            
-            //hide keyboard
-            UIApplication.shared.sendAction(#selector(UIApplication.resignFirstResponder), to: nil, from: nil, for: nil)
-            
-            let optionPicker = UIPickerView()
-            optionPicker.backgroundColor = UIColor.white
-            optionPicker.dataSource = picker
-            optionPicker.delegate = picker
-            
-            if let selectedIndex = selectedIndex {
-                
-                if (selectedIndex < dataArray.count) {
-                    optionPicker.selectRow(selectedIndex, inComponent: 0, animated: false)
-                }
-            }
-            
-            //Screen Size
-            let screenWidth = currentController.view.bounds.size.width
-            let screenHeight = currentController.view.bounds.size.height
-            let pickerHeight: CGFloat = 216
-            
-            // Add background view
-            
-            let closeFrame = CGRect(x: 0, y: screenHeight + 50, width: screenWidth, height: screenHeight)
-            
-            let viewTransperant = UIView()
-            
-            //viewTransperant.alpha = 0.0
-            currentController.view.addSubview(viewTransperant)
-            let view = currentController.view
-            viewTransperant.tag = viewTransperantTag
-            view?.addBGViewConstraints(viewTransperant)
-            
-            // Add date picker view
-            
-            viewTransperant.addSubview(optionPicker)
-            viewTransperant.addPickerViewConstraints(optionPicker)
+    /**
+    Show UIDatePicker with various constraints.
+    
+    - Parameters:
+    - title: Title visible to user above UIDatePicker.
+    - cancelText: By default button is hidden. Set text to show cancel button.
+    - doneText: Set done button title customization. A default title "Done" is used.
+    - dataArray: Array of string items.
+    - selectedIndex: default is nil. If set then picker will show selected index
 
-            // Add tool bar with done and cancel buttons
-            
-            let toolBar = RToolBar()
-            viewTransperant.addSubview(toolBar)
-            viewTransperant.addToolBarConstraints(toolBar, -pickerHeight)
-            toolBar.addToolBar(cancelText: cancelText, doneText: doneText)
-            toolBar.title = title
-
-            // show picker
-            var openPickerFrame = viewTransperant.frame
-            openPickerFrame.origin.y = 0
-
-            var views: [UIView] = [optionPicker, toolBar]
-            if let selectLabel = toolBar.toolBarTitleItem?.label {
-                views.append(selectLabel)
-            }
-            checkForDarkOrLightMode(currentController, views)
-
-            UIView.animate(withDuration: pickerAnimationDuration, animations: {
-                viewTransperant.frame = openPickerFrame
-                
-            }, completion: { (_) in
-                UIView.animate(withDuration: pickerAnimationDuration, animations: {
-                    viewTransperant.backgroundColor = UIColor(red: (0/255.0), green: (0/255.0), blue: (0/255.0), alpha: 0.6)
-                })
-            })
-            
-            toolBar.didSelectDone = {
-                
-                if let block = didSelectValue {
-                    
-                    let selectedValueIndex = optionPicker.selectedRow(inComponent: 0)
-                    
-                    block(dataArray[selectedValueIndex], selectedValueIndex)
-                }
-                remove()
-            }
-            
-            toolBar.didCancelled = {
-                
-                remove()
-            }
-            
-            func remove() {
-                
-                UIView.animate(withDuration: pickerAnimationDuration, animations: {
-                    viewTransperant.backgroundColor = UIColor.clear
-                    
-                }, completion: { (_) in
-                    UIView.animate(withDuration: pickerAnimationDuration, animations: {
-                        viewTransperant.frame = closeFrame
-                    }, completion: { (_) in
-                        viewTransperant.removeFromSuperview()
-                    })
-                })
-            }
+    - returns: closure with selected text and index.
+    */
+    
+    class func selectOption(title: String? = nil,
+                            cancelText: String? = nil,
+                            doneText: String = "Done",
+                            dataArray: Array<String>?,
+                            selectedIndex: Int? = nil,
+                            didSelectValue : ((_ value: String, _ atIndex: Int)->())?)  {
+        
+        guard let arr = dataArray, let vc = controller(title: title, cancelText: cancelText, doneText: doneText, dataArray: arr, selectedIndex: selectedIndex, type: .option) else { return }
+        
+        vc.onOptionSelected = { (selectedValue, selectedIndex) in
+            didSelectValue?(selectedValue, selectedIndex)
         }
     }
     
-    private class func checkForDarkOrLightMode(_ currentController: UIViewController, _ views: [UIView]) {
+    private class func controller(title: String? = nil,
+                          cancelText: String? = nil,
+                          doneText: String = "Done",
+                          datePickerMode: UIDatePicker.Mode = .date,
+                          selectedDate: Date = Date(),
+                          minDate: Date? = nil,
+                          maxDate: Date? = nil,
+                          dataArray:Array<String> = [],
+                          selectedIndex: Int? = nil,
+                          type: RPickerType = .date) -> RPickerController? {
         
-        if #available(iOS 13.0, *) {
-                        
-                        if currentController.traitCollection.userInterfaceStyle == .dark {
-            // Always adopt a light interface style.
-                            
-                            for view in views {
-                                
-                                if view is UIDatePicker || view is UIPickerView {
-                                    view.backgroundColor = UIColor.black
-                                } else if view is UILabel {
-                                    (view as! UILabel).textColor = UIColor.white
-                                }
-                                    view.overrideUserInterfaceStyle = .dark
-
-                            }
-                        }
-                        }
+        
+        if let cc = UIWindow.currentController {
+            if RPicker.sharedInstance.isPresented == false {
+                RPicker.sharedInstance.isPresented = true
+                
+                let vc = RPickerController(title: title, cancelText: cancelText, doneText: doneText, datePickerMode: datePickerMode, selectedDate: selectedDate, minDate: minDate, maxDate: maxDate, dataArray: dataArray, selectedIndex: selectedIndex, type: type)
+                
+                vc.modalPresentationStyle = .overCurrentContext
+                vc.modalTransitionStyle = .crossDissolve
+                cc.present(vc, animated: true, completion: nil)
+                
+                vc.onWillDismiss = {
+                    RPicker.sharedInstance.isPresented = false
+                }
+                
+                return vc
+            }
+        }
+        
+        return nil
     }
 }
 
-extension RPicker: UIPickerViewDataSource, UIPickerViewDelegate {
+private extension UIView {
     
-    //function for the number of columns in the picker
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 1
+    func pinConstraints(_ byView: UIView, left: CGFloat? = nil, right: CGFloat? = nil, top: CGFloat? = nil, bottom: CGFloat? = nil, height: CGFloat? = nil, width: CGFloat? = nil) {
+        
+        translatesAutoresizingMaskIntoConstraints = false
+        
+        if let l = left { leftAnchor.constraint(equalTo: byView.leftAnchor, constant: l).isActive = true }
+        if let r = right { rightAnchor.constraint(equalTo: byView.rightAnchor, constant: r).isActive = true }
+        if let t = top { topAnchor.constraint(equalTo: byView.topAnchor, constant: t).isActive = true }
+        if let b = bottom { bottomAnchor.constraint(equalTo: byView.bottomAnchor, constant: b).isActive = true }
+        if let h = height { heightAnchor.constraint(equalToConstant: h).isActive = true }
+        if let w = width { widthAnchor.constraint(equalToConstant: w).isActive = true }
     }
     
-    //function counting the array to give the number of rows in the picker
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return dataArray.count
-    }
-    
-    //function displaying the array rows in the picker as a string
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        return dataArray[row]
+    func surroundConstraints(_ byView: UIView, left: CGFloat = 0, right: CGFloat = 0, top: CGFloat = 0, bottom: CGFloat = 0) {
+        pinConstraints(byView, left: left, right: right, top: top, bottom: bottom)
     }
 }
 
-class RToolBar: UIView {
+class RPickerController: UIViewController {
     
-    open var didSelectDone: (() -> Void)?
-    open var didCancelled: (() -> Void)?
-    
-    var toolBarTitleItem: ToolBarTitleItem?
+    //MARK:- Public closuers
+    var onDateSelected : ((_ date: Date) -> Void)?
+    var onOptionSelected : ((_ value: String, _ atIndex: Int) -> Void)?
+    var onWillDismiss : (() -> Void)?
 
-    private var cancelText: String?
-    private var doneText: String!
-
-    var title = "" {
-        didSet {
-            guard let toolBarTitleItem = toolBarTitleItem else {
-                return
-            }
-             
-            toolBarTitleItem.label.text = title
-        }
-    }
+    //MARK:- Public variables
+    var selectedIndex: Int?
+    var selectedDate = Date()
+    var maxDate: Date?
+    var minDate: Date?
+    var titleText: String?
+    var cancelText: String?
+    var doneText: String = "Done"
+    var datePickerMode: UIDatePicker.Mode = .date
+    var pickerType: RPickerType = .date
+    var dataArray: Array<String> = []
     
-    func addToolBar(cancelText: String?, doneText: String) {
+    //MARK:- Private variables
+    private let barViewHeight: CGFloat = 44
+    private let pickerHeight: CGFloat = 216
+    private let buttonWidth: CGFloat = 84
+    private let lineHeight: CGFloat = 0.5
+    private let buttonColor = UIColor(red: 72/255, green: 152/255, blue: 240/255, alpha: 1)
+    private let lineColor = UIColor(red: 240/255, green: 240/255, blue: 240/255, alpha: 1)
+    private let barViewBGColor = UIColor.white
+    
+    //MARK:- Init
+    init(title: String? = nil,
+         cancelText: String? = nil,
+         doneText: String = "Done",
+         datePickerMode: UIDatePicker.Mode = .date,
+         selectedDate: Date = Date(),
+         minDate: Date? = nil,
+         maxDate: Date? = nil,
+         dataArray:Array<String> = [],
+         selectedIndex: Int? = nil,
+         type: RPickerType = .date) {
+        
+        self.titleText = title
         self.cancelText = cancelText
         self.doneText = doneText
-        let toolbarL = toolbar
-        self.addSubview(toolbarL)
-        self.addToolBarConstraints(toolbarL)
+        self.datePickerMode = datePickerMode
+        self.selectedDate = selectedDate
+        self.minDate = minDate
+        self.maxDate = maxDate
+        self.dataArray = dataArray
+        self.selectedIndex = selectedIndex
+        self.pickerType = type
+        
+        super.init(nibName: nil, bundle: nil)
+        
+        initialSetup()
     }
     
-    open var toolbar: UIToolbar {
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    //MARK:- Private functions
+    private func initialSetup() {
         
-        let toolBarL = ToolBar(frame: frame, target: self)
+        view.backgroundColor = UIColor.clear
+        let bgView = UIView()
+        view.addSubview(bgView)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.handleTap))
+        bgView.addGestureRecognizer(tapGesture)
+        
+        bgView.backgroundColor = UIColor(white: 0.1, alpha: 0.5)
+        bgView.isUserInteractionEnabled = true
+        bgView.surroundConstraints(view)
+        
+        //Stack View
+        let stackView   = UIStackView()
+        stackView.axis  = NSLayoutConstraint.Axis.vertical
+        stackView.distribution = UIStackView.Distribution.fill
+        stackView.alignment = UIStackView.Alignment.center
+        stackView.spacing = 0.0
+        
+        stackView.addArrangedSubview(lineLabel)
+        stackView.addArrangedSubview(toolBarView)
+        stackView.addArrangedSubview(lineLabel)
+        
+        if pickerType == .date {
+            stackView.addArrangedSubview(datePicker)
+        } else {
+            stackView.addArrangedSubview(optionPicker)
+        }
+        
+        self.view.addSubview(stackView)
+        
+        let height = barViewHeight + pickerHeight + (2*lineHeight)
+        stackView.pinConstraints(view, left: 0, right: 0, bottom: 0, height: height)
+    }
+    
+    private func dismissVC() {
+        onWillDismiss?()
+        dismiss(animated: true, completion: nil)
+    }
+    
+    @objc func handleTap() { dismissVC() }
+    
+    //MARK:- Private properties
 
+    private lazy var datePicker: UIDatePicker = {
+        let picker = UIDatePicker()
+        picker.backgroundColor = UIColor.white
+        picker.pinConstraints(view, width: view.frame.width)
+        picker.minimumDate = minDate
+        picker.maximumDate = maxDate
+        picker.date = selectedDate
+        picker.datePickerMode = datePickerMode
+
+        return picker
+    }()
+    
+    private lazy var optionPicker: UIPickerView = {
+        
+        let picker = UIPickerView()
+        picker.dataSource = self
+        picker.delegate = self
+        picker.backgroundColor = UIColor.white
+        picker.pinConstraints(view, width: view.frame.width)
+        
+        if let selectedIndex = selectedIndex {
+            if (selectedIndex < dataArray.count) {
+                picker.selectRow(selectedIndex, inComponent: 0, animated: false)
+            }
+        }
+        
+        return picker
+    }()
+    
+    private lazy var toolBarView: UIView = {
+        
+        let barView = UIView()
+        barView.backgroundColor = barViewBGColor
+        barView.pinConstraints(view, height: barViewHeight, width: view.frame.width)
+        
+        //add done button
+        let doneButton = self.doneButton
+        let cancelButton = self.cancelButton
+        
+        barView.addSubview(doneButton)
+        barView.addSubview(cancelButton)
+        
+        cancelButton.pinConstraints(barView, left: 0, top: 0, bottom: 0, width: buttonWidth)
+        doneButton.pinConstraints(barView, right: 0, top: 0, bottom: 0, width: buttonWidth)
+        
+        if let text = titleText {
+            let titleLabel = self.titleLabel
+            titleLabel.text = text
+            barView.addSubview(titleLabel)
+            titleLabel.surroundConstraints(barView, left: buttonWidth, right: -buttonWidth)
+        }
+        
+        doneButton.setTitle(doneText, for: .normal)
+        
         if let text = cancelText {
-            toolBarL.appendButton(buttonItem: toolBarL.buttonItem(text: text, selector: #selector(self.cancelAction)))
+            cancelButton.setTitle(text, for: .normal)
+        } else {
+            cancelButton.isHidden = true
         }
         
-        //toolBar.appendButton(buttonItem: toolBar.buttonItem(systemItem: .camera, selector: #selector(self.doneAction)))
-        toolBarL.appendButton(buttonItem: toolBarL.flexibleSpace)
-        
-        let toolBarTitleItem = toolBarL.titleItem(text: "", font: UIFont(name: "HelveticaNeue-Medium", size: 15.0)!, color: UIColor.black)
-        
-        self.toolBarTitleItem = toolBarTitleItem as? ToolBarTitleItem
-        toolBarL.appendButton(buttonItem: toolBarTitleItem)
-        toolBarL.appendButton(buttonItem: toolBarL.flexibleSpace)
-        toolBarL.appendButton(buttonItem: toolBarL.buttonItem(text: doneText, selector: #selector(self.doneAction)))
-
-        return toolBarL
-    }
+        return barView
+    }()
     
-    @objc func doneAction() { didSelectDone?() }
+    private lazy var lineLabel: UILabel = {
+        let label = UILabel()
+        label.backgroundColor = lineColor
+        label.pinConstraints(view, height: lineHeight, width: view.frame.width)
+        return label
+    }()
     
-    @objc func cancelAction() { didCancelled?() }
-}
-
-class ToolBar: UIToolbar {
-    
-    let target: Any?
-    
-    init(frame: CGRect, target: Any?) {
-        self.target = target
-        super.init(frame: frame)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    func buttonItem(text: String, selector: Selector?) -> UIBarButtonItem {
-        
-        return UIBarButtonItem(
-            title: text,
-            style: .plain,
-            target: target,
-            action: selector)
-    }
-    
-    var flexibleSpace: UIBarButtonItem {
-        return UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: target, action: nil)
-    }
-    
-    func titleItem (text: String, font: UIFont, color: UIColor) -> UIBarButtonItem {
-        return ToolBarTitleItem(text: text, font: font, color: color)
-    }
-    
-    func appendButton(buttonItem: UIBarButtonItem) {
-        if items == nil {
-            items = [UIBarButtonItem]()
-        }
-        
-        buttonItem.setTitleTextAttributes([
-            NSAttributedString.Key.font: UIFont(name: "HelveticaNeue-Medium", size: 14.0)!,
-            NSAttributedString.Key.foregroundColor: UIColor(red: (49/255.0), green: (118/255.0), blue: 239, alpha: 1)],
-                                          for: .normal)
-        
-        items!.append(buttonItem)
-    }
-}
-
-class ToolBarTitleItem: UIBarButtonItem {
-    
-    var label: UILabel
-    
-    init(text: String, font: UIFont, color: UIColor) {
-        
-        var frame = UIScreen.main.bounds
-        frame.size.width = UIScreen.main.bounds.width - 140
-        
-        label =  UILabel(frame: frame)
-        label.text = text
-        //label.sizeToFit()
-        label.font = font
-        label.textColor = color
+    private lazy var titleLabel: UILabel = {
+        let label = UILabel()
         label.textAlignment = .center
-        label.numberOfLines = 0
+        label.textColor = UIColor.darkGray
+        label.font = UIFont(name: "HelveticaNeue-Medium", size: 14)
+        label.numberOfLines = 2
+        return label
+    }()
+    
+    private lazy var doneButton: UIButton = {
+        let button = UIButton()
+        button.setTitleColor(buttonColor, for: .normal)
+        button.titleLabel?.font = UIFont(name: "HelveticaNeue-Bold", size: 16)
+        button.addTarget(self, action: #selector(onDoneButton), for: .touchUpInside)
+        return button
+    }()
+    
+    private lazy var cancelButton: UIButton = {
+        let button = UIButton()
+        button.setTitleColor(buttonColor, for: .normal)
+        button.titleLabel?.font = UIFont(name: "HelveticaNeue-Bold", size: 16)
+        button.addTarget(self, action: #selector(onCancelButton), for: .touchUpInside)
+        return button
+    }()
+    
+    @objc func onDoneButton(sender : UIButton) {
         
-        super.init()
-
-        customView = label
+        if pickerType == .date {
+            onDateSelected?(datePicker.date)
+        } else {
+            let selectedValueIndex = self.optionPicker.selectedRow(inComponent: 0)
+            onOptionSelected?(dataArray[selectedValueIndex], selectedValueIndex)
+        }
+        
+        dismissVC()
     }
     
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    @objc func onCancelButton(sender : UIButton) { dismissVC() }
+}
+
+//MARK:- UIPickerViewDataSource, UIPickerViewDelegate
+
+extension RPickerController: UIPickerViewDataSource, UIPickerViewDelegate {
+    
+    func numberOfComponents(in pickerView: UIPickerView) -> Int { return 1 }
+    
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int { return dataArray.count }
+    
+    func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
+        
+        var pickerLabel = view as? UILabel
+        
+        if (pickerLabel == nil) {
+            pickerLabel = UILabel()
+            pickerLabel?.font = UIFont(name: "OpenSans-Semibold", size: 16)
+            pickerLabel?.textAlignment = NSTextAlignment.center
+        }
+        
+        pickerLabel?.text = dataArray[row]
+        
+        return pickerLabel!
     }
 }
 
-extension UIApplication {
+// MARK:- Private Extensions
+
+private extension UIApplication {
     static var keyWindow: UIWindow? {
         return UIApplication.shared.connectedScenes
-        .filter({$0.activationState == .foregroundActive})
-        .map({$0 as? UIWindowScene})
-        .compactMap({$0})
-        .first?.windows
-        .filter({$0.isKeyWindow}).first
+            .filter({$0.activationState == .foregroundActive})
+            .map({$0 as? UIWindowScene})
+            .compactMap({$0})
+            .first?.windows
+            .filter({$0.isKeyWindow}).first
+        
+//        if #available(iOS 13.0, *) {
+//         return UIApplication.shared.connectedScenes
+//         .filter({$0.activationState == .foregroundActive})
+//         .map({$0 as? UIWindowScene})
+//         .compactMap({$0})
+//         .first?.windows
+//         .filter({$0.isKeyWindow}).first
+//         } else {
+//         let appDelegate = UIApplication.shared.delegate as? AppDelegate
+//         return appDelegate?.window
+//         }
     }
 }
 
-extension UIWindow {
-        
+private extension UIWindow {
+    
     static var currentController: UIViewController? {
         return UIApplication.keyWindow?.currentController
     }
@@ -448,40 +423,4 @@ extension UIWindow {
         }
         return controller
     }
-    
-    
 }
-
-extension UIView {
-    
-    func addBGViewConstraints(_ relativeToView: UIView) {
-        
-        relativeToView.translatesAutoresizingMaskIntoConstraints = false
-        let horizontalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutConstraint.Attribute.centerX, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self, attribute: NSLayoutConstraint.Attribute.centerX, multiplier: 1, constant: 0)
-        let verticalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutConstraint.Attribute.centerY, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self, attribute: NSLayoutConstraint.Attribute.centerY, multiplier: 1, constant: 0)
-        let widthConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutConstraint.Attribute.width, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self, attribute: NSLayoutConstraint.Attribute.width, multiplier: 1, constant: 0)
-        let heightConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self, attribute: NSLayoutConstraint.Attribute.height, multiplier: 1, constant: 0)
-        self.addConstraints([horizontalConstraint, verticalConstraint, widthConstraint, heightConstraint])
-    }
-    
-    func addPickerViewConstraints(_ relativeToView: UIView) {
-        
-        relativeToView.translatesAutoresizingMaskIntoConstraints = false
-        let horizontalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutConstraint.Attribute.centerX, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self, attribute: NSLayoutConstraint.Attribute.centerX, multiplier: 1, constant: 0)
-        let verticalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutConstraint.Attribute.bottomMargin, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self, attribute: NSLayoutConstraint.Attribute.bottomMargin, multiplier: 1, constant: 0)
-        let widthConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutConstraint.Attribute.width, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self, attribute: NSLayoutConstraint.Attribute.width, multiplier: 1, constant: 0)
-        let heightConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: nil, attribute: NSLayoutConstraint.Attribute.height, multiplier: 1, constant: pickerHeight)
-        self.addConstraints([horizontalConstraint, verticalConstraint, widthConstraint, heightConstraint])
-    }
-    
-    func addToolBarConstraints(_ relativeToView: UIView,_ bottomConst: CGFloat = 0) {
-        
-        relativeToView.translatesAutoresizingMaskIntoConstraints = false
-        let horizontalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutConstraint.Attribute.centerX, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self, attribute: NSLayoutConstraint.Attribute.centerX, multiplier: 1, constant: 0)
-        let verticalConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutConstraint.Attribute.bottomMargin, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self, attribute: NSLayoutConstraint.Attribute.bottomMargin, multiplier: 1, constant: bottomConst)
-        let widthConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutConstraint.Attribute.width, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self, attribute: NSLayoutConstraint.Attribute.width, multiplier: 1, constant: 0)
-        let heightConstraint = NSLayoutConstraint(item: relativeToView, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: nil, attribute: NSLayoutConstraint.Attribute.height, multiplier: 1, constant: 48)
-        self.addConstraints([horizontalConstraint, verticalConstraint, widthConstraint, heightConstraint])
-    }
-}
-
