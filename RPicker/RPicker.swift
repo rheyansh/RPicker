@@ -2,7 +2,7 @@
 //  RPicker.swift
 //  RPicker
 //
-//  Created by rajkumar.sharma on 4/25/18.
+//  Created by Rheyansh on 4/25/18.
 //  Copyright © 2018 Raj Sharma. All rights reserved.
 //
 
@@ -371,24 +371,11 @@ extension RPickerController: UIPickerViewDataSource, UIPickerViewDelegate {
 
 private extension UIApplication {
     static var keyWindow: UIWindow? {
-        return UIApplication.shared.connectedScenes
-            .filter({$0.activationState == .foregroundActive})
-            .map({$0 as? UIWindowScene})
-            .compactMap({$0})
-            .first?.windows
-            .filter({$0.isKeyWindow}).first
-        
-//        if #available(iOS 13.0, *) {
-//         return UIApplication.shared.connectedScenes
-//         .filter({$0.activationState == .foregroundActive})
-//         .map({$0 as? UIWindowScene})
-//         .compactMap({$0})
-//         .first?.windows
-//         .filter({$0.isKeyWindow}).first
-//         } else {
-//         let appDelegate = UIApplication.shared.delegate as? AppDelegate
-//         return appDelegate?.window
-//         }
+        if #available(iOS 13.0, *) {
+         return UIApplication.shared.windows.filter {$0.isKeyWindow}.first
+         } else {
+            return UIApplication.shared.delegate?.window ?? nil
+         }
     }
 }
 
