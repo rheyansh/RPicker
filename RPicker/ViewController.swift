@@ -13,7 +13,7 @@ let dummyList = ["Apple", "Orange", "Banana", "Mango", "Bilberry", "Blackberry"]
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     @IBOutlet weak var outputLabel: UILabel!
     
-    let items = ["Show date picker", "Show date picker with tile", "Show time picker", "Show date and time picker", "Show date picker with min and max date", "Show option picker", "Show option picker with selected index", "Show date picker with pre selected date", "Show date picker with cancel button"]
+    let items = ["Show date picker", "Show date picker with tile", "Show time picker", "Show date and time picker", "Show date picker with min and max date", "Show option picker", "Show option picker with selected index", "Show date picker with pre selected date", "Show date picker with cancel button", "Show date picker iOS 14 -> Inline mode", "Show time picker iOS 14 -> Inline mode", "Show date and time picker iOS 14 -> Inline mode", "Show date and time picker iOS 14 -> Compact mode"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -111,6 +111,34 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             RPicker.selectDate(title: "Select Date", cancelText: "Cancel", didSelectDate: {[weak self] (selectedDate) in
                 // TODO: Your implementation for date
                 self?.outputLabel.text = selectedDate.dateString("MMM-dd-YYYY")
+            })
+            
+        case 9:
+            //Show date picker iOS 14 -> Inline mode
+            RPicker.selectDate(title: "Select Date", cancelText: "Cancel", datePickerMode: .date, style: .Inline, didSelectDate: {[weak self] (selectedDate) in
+                // TODO: Your implementation for date
+                self?.outputLabel.text = selectedDate.dateString("MMM-dd-YYYY")
+            })
+            
+        case 10:
+            //Show time picker iOS 14 -> Inline mode
+            RPicker.selectDate(title: "Select Time", cancelText: "Cancel", datePickerMode: .time, style: .Inline, didSelectDate: {[weak self] (selectedDate) in
+                // TODO: Your implementation for date
+                self?.outputLabel.text = selectedDate.dateString("hh:mm a")
+            })
+            
+        case 11:
+            //Show date and time picker iOS 14 -> Inline mode
+            RPicker.selectDate(title: "Select Date and Time", cancelText: "Cancel", datePickerMode: .dateAndTime, style: .Inline, didSelectDate: {[weak self] (selectedDate) in
+                // TODO: Your implementation for date
+                self?.outputLabel.text = selectedDate.dateString()
+            })
+          
+        case 12:
+            //Show date and time picker iOS 14 -> Compact mode
+            RPicker.selectDate(title: "Select Date and Time", cancelText: "Cancel", datePickerMode: .dateAndTime, style: .Compact, didSelectDate: {[weak self] (selectedDate) in
+                // TODO: Your implementation for date
+                self?.outputLabel.text = selectedDate.dateString()
             })
             
         default:

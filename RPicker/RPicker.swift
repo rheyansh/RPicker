@@ -8,11 +8,16 @@
 
 import UIKit
 
+@objc enum RDatePickerStyle: Int {
+    //Only for iOS 14 and above
+    case Wheel, Inline, Compact
+}
+
 enum RPickerType {
     case date, option
 }
 
-open class RPicker {
+@objc open class RPicker: NSObject {
     
     private static let sharedInstance = RPicker()
     private var isPresented = false
@@ -28,20 +33,22 @@ open class RPicker {
      - selectedDate: default is current date.
      - minDate: default is nil.
      - maxDate: default is nil.
+     - style: default is wheel.
 
      - returns: closure with selected date.
      */
     
-    class func selectDate(title: String? = nil,
+    @objc class func selectDate(title: String? = nil,
                           cancelText: String? = nil,
                           doneText: String = "Done",
                           datePickerMode: UIDatePicker.Mode = .date,
                           selectedDate: Date = Date(),
                           minDate: Date? = nil,
                           maxDate: Date? = nil,
+                          style: RDatePickerStyle = .Wheel,
                           didSelectDate : ((_ date: Date)->())?) {
         
-        guard let vc = controller(title: title, cancelText: cancelText, doneText: doneText, datePickerMode: datePickerMode, selectedDate: selectedDate, minDate: minDate, maxDate: maxDate, type: .date) else { return }
+        guard let vc = controller(title: title, cancelText: cancelText, doneText: doneText, datePickerMode: datePickerMode, selectedDate: selectedDate, minDate: minDate, maxDate: maxDate, type: .date, style: style) else { return }
         
         vc.onDateSelected = { (selectedData) in
             didSelectDate?(selectedData)
@@ -75,6 +82,38 @@ open class RPicker {
         }
     }
     
+    /**
+    Show UIDatePicker with various constraints.
+    
+    - Parameters:
+    - title: Title visible to user above UIDatePicker.
+    - cancelText: By default button is hidden. Set text to show cancel button.
+    - doneText: Set done button title customization. A default title "Done" is used.
+    - dataArray: Array of string items.
+    - selectedIndex: default is nil. If set then picker will show selected index
+
+    - returns: closure with selected text and index.
+    */
+    //--> For exposing to Objective C. Same as swift
+    @objc class func pickOption(title: String? = nil,
+                            cancelText: String? = nil,
+                            doneText: String = "Done",
+                            dataArray: Array<String>?,
+                            selectedIndex: NSNumber? = nil,
+                            didSelectValue : ((_ value: String, _ atIndex: Int)->())?)  {
+        
+        var selIndex: Int?
+        if let index = selectedIndex {
+         selIndex = Int(truncating: index)
+        }
+        
+        guard let arr = dataArray, let vc = controller(title: title, cancelText: cancelText, doneText: doneText, dataArray: arr, selectedIndex: selIndex, type: .option) else { return }
+        
+        vc.onOptionSelected = { (selectedValue, selectedIndex) in
+            didSelectValue?(selectedValue, selectedIndex)
+        }
+    }
+    
     private class func controller(title: String? = nil,
                           cancelText: String? = nil,
                           doneText: String = "Done",
@@ -84,14 +123,15 @@ open class RPicker {
                           maxDate: Date? = nil,
                           dataArray:Array<String> = [],
                           selectedIndex: Int? = nil,
-                          type: RPickerType = .date) -> RPickerController? {
+                          type: RPickerType = .date,
+                          style: RDatePickerStyle = .Wheel) -> RPickerController? {
         
         
         if let cc = UIWindow.currentController {
             if RPicker.sharedInstance.isPresented == false {
                 RPicker.sharedInstance.isPresented = true
                 
-                let vc = RPickerController(title: title, cancelText: cancelText, doneText: doneText, datePickerMode: datePickerMode, selectedDate: selectedDate, minDate: minDate, maxDate: maxDate, dataArray: dataArray, selectedIndex: selectedIndex, type: type)
+                let vc = RPickerController(title: title, cancelText: cancelText, doneText: doneText, datePickerMode: datePickerMode, selectedDate: selectedDate, minDate: minDate, maxDate: maxDate, dataArray: dataArray, selectedIndex: selectedIndex, type: type, style: style)
                 
                 vc.modalPresentationStyle = .overCurrentContext
                 vc.modalTransitionStyle = .crossDissolve
@@ -144,6 +184,8 @@ class RPickerController: UIViewController {
     var cancelText: String?
     var doneText: String = "Done"
     var datePickerMode: UIDatePicker.Mode = .date
+    var datePickerStyle: RDatePickerStyle = .Wheel //Only for iOS 14 and above
+
     var pickerType: RPickerType = .date
     var dataArray: Array<String> = []
     
@@ -154,7 +196,6 @@ class RPickerController: UIViewController {
     private let lineHeight: CGFloat = 0.5
     private let buttonColor = UIColor(red: 72/255, green: 152/255, blue: 240/255, alpha: 1)
     private let lineColor = UIColor(red: 240/255, green: 240/255, blue: 240/255, alpha: 1)
-    private let barViewBGColor = UIColor.white
     
     //MARK:- Init
     init(title: String? = nil,
@@ -166,7 +207,8 @@ class RPickerController: UIViewController {
          maxDate: Date? = nil,
          dataArray:Array<String> = [],
          selectedIndex: Int? = nil,
-         type: RPickerType = .date) {
+         type: RPickerType = .date,
+         style: RDatePickerStyle = .Wheel) {
         
         self.titleText = title
         self.cancelText = cancelText
@@ -178,7 +220,8 @@ class RPickerController: UIViewController {
         self.dataArray = dataArray
         self.selectedIndex = selectedIndex
         self.pickerType = type
-        
+        self.datePickerStyle = style
+
         super.init(nibName: nil, bundle: nil)
         
         initialSetup()
@@ -188,40 +231,97 @@ class RPickerController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        // Trait collection has already changed
+    }
+    
+    override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
+        // Trait collection will change. Use this one so you know what the state is changing to.
+      if #available(iOS 12.0, *) {
+         if newCollection.userInterfaceStyle != traitCollection.userInterfaceStyle {
+            if newCollection.userInterfaceStyle == .dark {
+               setUpThemeMode(isDark: true)
+            } else {
+                setUpThemeMode(isDark: false)
+            }
+         }
+      } else {
+         // Fallback on earlier versions
+        setUpThemeMode(isDark: false)
+      }
+    }
+    
     //MARK:- Private functions
     private func initialSetup() {
         
         view.backgroundColor = UIColor.clear
-        let bgView = UIView()
+        let bgView = transView
         view.addSubview(bgView)
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.handleTap))
-        bgView.addGestureRecognizer(tapGesture)
-        
-        bgView.backgroundColor = UIColor(white: 0.1, alpha: 0.5)
-        bgView.isUserInteractionEnabled = true
         bgView.surroundConstraints(view)
         
         //Stack View
-        let stackView   = UIStackView()
-        stackView.axis  = NSLayoutConstraint.Axis.vertical
-        stackView.distribution = UIStackView.Distribution.fill
-        stackView.alignment = UIStackView.Alignment.center
-        stackView.spacing = 0.0
-        
         stackView.addArrangedSubview(lineLabel)
         stackView.addArrangedSubview(toolBarView)
         stackView.addArrangedSubview(lineLabel)
-        
+                
+        var height = barViewHeight + (2*lineHeight)
+
         if pickerType == .date {
             stackView.addArrangedSubview(datePicker)
+            if #available(iOS 14.0, *) {
+                if datePickerStyle == .Wheel {
+                    height = height + pickerHeight
+                } else if datePickerStyle == .Compact {
+                    height = height + pickerHeight
+                } else {
+                    if datePicker.datePickerMode == .dateAndTime {
+                        height = height + 428
+                    } else if datePicker.datePickerMode == .date {
+                        height = height + 386
+                    } else {
+                        height = height + pickerHeight
+                    }
+                }
+            } else {
+                //restrict to use wheel mode
+                datePickerStyle = .Wheel
+                height = height + pickerHeight
+            }
+        
         } else {
             stackView.addArrangedSubview(optionPicker)
+            height = height + pickerHeight
         }
         
         self.view.addSubview(stackView)
-        
-        let height = barViewHeight + pickerHeight + (2*lineHeight)
+                
         stackView.pinConstraints(view, left: 0, right: 0, bottom: 0, height: height)
+        //stackView.pinConstraints(view, left: 0, right: 0, top: 0, bottom: 0)
+        
+      if #available(iOS 12.0, *) {
+         if traitCollection.userInterfaceStyle == .dark {
+            setUpThemeMode(isDark: true)
+         } else {
+            setUpThemeMode(isDark: false)
+         }
+      } else {
+         // Fallback on earlier versions
+        setUpThemeMode(isDark: false)
+      }
+    }
+    
+    private func setUpThemeMode(isDark: Bool) {
+
+        if isDark {
+            titleLabel.textColor = UIColor.white
+            stackView.backgroundColor = UIColor.black
+            transView.backgroundColor = UIColor(white: 1, alpha: 0.3)
+
+        } else {
+            titleLabel.textColor = UIColor.darkGray
+            stackView.backgroundColor = UIColor.white
+            transView.backgroundColor = UIColor(white: 0.1, alpha: 0.3)
+        }
     }
     
     private func dismissVC() {
@@ -233,14 +333,40 @@ class RPickerController: UIViewController {
     
     //MARK:- Private properties
 
+    private lazy var transView: UIView = {
+        let vw = UIView()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.handleTap))
+        vw.addGestureRecognizer(tapGesture)
+        vw.isUserInteractionEnabled = true
+        return vw
+    }()
+    
+    private lazy var stackView: UIStackView = {
+        let sv = UIStackView()
+        sv.axis = NSLayoutConstraint.Axis.vertical
+        sv.distribution = UIStackView.Distribution.fill
+        sv.alignment = UIStackView.Alignment.center
+        sv.spacing = 0.0
+        return sv
+    }()
+    
     private lazy var datePicker: UIDatePicker = {
         let picker = UIDatePicker()
-        picker.backgroundColor = UIColor.white
         picker.pinConstraints(view, width: view.frame.width)
         picker.minimumDate = minDate
         picker.maximumDate = maxDate
         picker.date = selectedDate
         picker.datePickerMode = datePickerMode
+
+        if #available(iOS 14, *) {
+            if datePickerStyle == .Wheel {
+                picker.preferredDatePickerStyle = .wheels
+            } else if datePickerStyle == .Compact {
+                picker.preferredDatePickerStyle = .compact
+            } else {
+                picker.preferredDatePickerStyle = .inline
+            }
+        }
 
         return picker
     }()
@@ -250,7 +376,6 @@ class RPickerController: UIViewController {
         let picker = UIPickerView()
         picker.dataSource = self
         picker.delegate = self
-        picker.backgroundColor = UIColor.white
         picker.pinConstraints(view, width: view.frame.width)
         
         if let selectedIndex = selectedIndex {
@@ -265,7 +390,6 @@ class RPickerController: UIViewController {
     private lazy var toolBarView: UIView = {
         
         let barView = UIView()
-        barView.backgroundColor = barViewBGColor
         barView.pinConstraints(view, height: barViewHeight, width: view.frame.width)
         
         //add done button
@@ -306,7 +430,6 @@ class RPickerController: UIViewController {
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
-        label.textColor = UIColor.darkGray
         label.font = UIFont(name: "HelveticaNeue-Medium", size: 14)
         label.numberOfLines = 2
         return label
