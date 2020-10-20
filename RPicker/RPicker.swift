@@ -316,11 +316,23 @@ class RPickerController: UIViewController {
             titleLabel.textColor = UIColor.white
             stackView.backgroundColor = UIColor.black
             transView.backgroundColor = UIColor(white: 1, alpha: 0.3)
+            if pickerType == .date {
+                datePicker.backgroundColor = UIColor.black
+            } else {
+                optionPicker.backgroundColor = UIColor.black
+            }
+            toolBarView.backgroundColor = UIColor.black
 
         } else {
             titleLabel.textColor = UIColor.darkGray
             stackView.backgroundColor = UIColor.white
             transView.backgroundColor = UIColor(white: 0.1, alpha: 0.3)
+            if pickerType == .date {
+                datePicker.backgroundColor = UIColor.white
+            } else {
+                optionPicker.backgroundColor = UIColor.white
+            }
+            toolBarView.backgroundColor = UIColor.white
         }
     }
     
