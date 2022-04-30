@@ -1,5 +1,5 @@
 # RPicker
-Elegant and Easy-to-Use iOS Swift Date and Options Picker.
+Elegant and Easy-to-Use Swift Date and Options Picker.
 Master branch has the latest code and compatible with Swift 5. Check other branches for various Swift versions
 
 # What's New
